@@ -19,7 +19,6 @@ export default class App extends Component {
       goster: 0,
       sonuc: '0',
       gecmis: [],
-
     };
   }
   ekle = rakam => {
@@ -32,7 +31,12 @@ export default class App extends Component {
     }
   };
   isaret = isaret => {
+    this.setState({goster: 1});
     let dizi = this.state.gecmis;
+    if (this.state.gecmis.length < 1) {
+      dizi.push(this.state.value);
+      this.setState({gecmis: dizi});
+    }
     if (this.state.value !== '0') {
       if (isaret === '+') {
         if (this.state.value.length > 2 && this.state.value[0] === '+') {
@@ -44,8 +48,10 @@ export default class App extends Component {
             gecmis: dizi,
           });
         } else {
-          if (this.state.value.length === 1 && this.state.value !== '+') {
-            dizi.push(this.state.value.trim());
+          if (this.state.value.length > 2 && this.state.value[0] === '=') {
+            dizi.push(this.state.value.slice(2));
+          } else if (this.state.value.length > 2) {
+            dizi.push(this.state.value);
           }
           this.setState({
             ara: this.state.sonuc.slice(2),
@@ -64,8 +70,10 @@ export default class App extends Component {
             gecmis: dizi,
           });
         } else {
-          if (this.state.value.length === 1 && this.state.value !== '-') {
-            dizi.push(this.state.value.trim());
+          if (this.state.value.length > 2 && this.state.value[0] === '=') {
+            dizi.push(this.state.value.slice(2));
+          } else if (this.state.value.length > 2) {
+            dizi.push(this.state.value);
           }
           this.setState({
             ara: this.state.sonuc.slice(2),
@@ -84,8 +92,10 @@ export default class App extends Component {
             gecmis: dizi,
           });
         } else {
-          if (this.state.value.length === 1 && this.state.value !== 'x') {
-            dizi.push(this.state.value.trim());
+          if (this.state.value.length > 2 && this.state.value[0] === '=') {
+            dizi.push(this.state.value.slice(2));
+          } else if (this.state.value.length > 2) {
+            dizi.push(this.state.value);
           }
           this.setState({
             ara: this.state.sonuc.slice(2),
@@ -104,8 +114,10 @@ export default class App extends Component {
             gecmis: dizi,
           });
         } else {
-          if (this.state.value.length === 1 && this.state.value !== '÷') {
-            dizi.push(this.state.value.trim());
+          if (this.state.value.length > 2 && this.state.value[0] === '=') {
+            dizi.push(this.state.value.slice(2));
+          } else if (this.state.value.length > 2) {
+            dizi.push(this.state.value);
           }
           this.setState({
             ara: this.state.sonuc.slice(2),
@@ -170,24 +182,37 @@ export default class App extends Component {
               justifyContent: 'flex-end',
               alignItems: 'flex-end',
             }}>
-            <ScrollView>{gecmis}</ScrollView>
+            <ScrollView
+              ref={ref => (this.scrollView = ref)}
+              onContentSizeChange={(contentWidth, contentHeight) => {
+                this.scrollView.scrollToEnd({animated: true});
+              }}>
+              {gecmis}
+            </ScrollView>
           </View>
-          <Text
-            style={{
-              fontSize: Dimensions.get('window').height / 15,
-              marginRight: 10,
-            }}>
-            {this.state.value}
-          </Text>
-          {this.state.goster === 1 ? (
+          {this.state.goster === 0 ? (
+            <Text
+              style={{
+                fontSize: Dimensions.get('window').height / 15,
+                marginRight: 10,
+              }}
+            />
+          ) : (
             <Text
               style={{
                 fontSize: Dimensions.get('window').height / 15,
                 marginRight: 10,
               }}>
-              {this.state.sonuc}
+              {this.state.value}
             </Text>
-          ) : null}
+          )}
+          <Text
+            style={{
+              fontSize: Dimensions.get('window').height / 15,
+              marginRight: 10,
+            }}>
+            {this.state.sonuc}
+          </Text>
         </View>
         <View style={styles.asagisi}>
           <View style={{flexDirection: 'row'}}>
@@ -285,15 +310,23 @@ export default class App extends Component {
               <TouchableOpacity
                 onPress={() => {
                   let dizi = this.state.gecmis;
-                  if (this.state.value.length > 2) {
-                    dizi.push(this.state.value);
+                  if (dizi.length > 0) {
+                    if (
+                      this.state.value.length > 2 &&
+                      this.state.value[0] === '='
+                    ) {
+                      dizi.push(this.state.value.slice(2));
+                    } else if (this.state.value.length > 2) {
+                      dizi.push(this.state.value);
+                    }
+                    dizi.push(this.state.sonuc);
+                    dizi.push('-----------------------------------');
+                    this.setState({
+                      gecmis: dizi,
+                      goster: 0,
+                      value: this.state.sonuc,
+                    });
                   }
-                  dizi.push(this.state.sonuc);
-                  this.setState({
-                    gecmis: dizi,
-                    goster: 0,
-                    value: this.state.sonuc,
-                  });
                 }}>
                 <Text style={styles.yazi}>=</Text>
               </TouchableOpacity>
@@ -312,7 +345,7 @@ const styles = StyleSheet.create({
   },
   yukarisi: {
     flex: Dimensions.get('window').height / 2,
-    justifyContent: 'flex-end',
+
     backgroundColor: '#d5d5d5',
     alignItems: 'flex-end',
   },
@@ -325,7 +358,7 @@ const styles = StyleSheet.create({
   },
   kutu: {
     width: Dimensions.get('window').width / 4,
-    borderWidth: 0.2,
+    borderWidth: 1,
     borderColor: 'grey',
     height: Dimensions.get('window').height / 8,
     alignSelf: 'center',
